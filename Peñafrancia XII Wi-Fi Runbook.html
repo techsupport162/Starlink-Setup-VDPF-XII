@@ -1,0 +1,717 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Peñafrancia XII Wi-Fi Runbook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: centered runbook column; phases stack, steps hang off a numbered rail. Red family accents, green kept for "verify". */
+:root {
+  --bg: #fbf7f7;
+  --surface: #ffffff;
+  --sunk: #f6efef;
+  --ink: #231a1b;
+  --muted: #6e6062;
+  --line: #ecdfe0;
+  --red: #c8102e;
+  --red-hi: #e2404d;
+  --red-deep: #7d0b1d;
+  --tint: #fdecee;
+  --tint-line: #f5c9ce;
+  --s1: #8f0d22;
+  --s2: #c8102e;
+  --s3: #e0503f;
+  --s4: #b81d55;
+  --ok: #2e7a48;
+  --ok-bg: #eef7f1;
+  --ok-line: #cbe5d4;
+  --warn: #9a5800;
+  --warn-bg: #fff5e6;
+  --warn-line: #f2d9ac;
+  --code: #a3172f;
+  --display: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151011; --surface: #1e1718; --sunk: #241c1d; --ink: #f3ebeb; --muted: #b5a6a8; --line: #362a2c;
+    --red: #ff5a69; --red-hi: #ff8e92; --red-deep: #ff3a50; --tint: #2d1a1d; --tint-line: #5a2a31;
+    --s1: #ff6b7c; --s2: #ff5a69; --s3: #ff8a6e; --s4: #ff6f9c;
+    --ok: #74d197; --ok-bg: #13231a; --ok-line: #24472f; --warn: #f2b65c; --warn-bg: #2a2013; --warn-line: #4d3a1d;
+    --code: #ff9aa5; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151011; --surface: #1e1718; --sunk: #241c1d; --ink: #f3ebeb; --muted: #b5a6a8; --line: #362a2c;
+  --red: #ff5a69; --red-hi: #ff8e92; --red-deep: #ff3a50; --tint: #2d1a1d; --tint-line: #5a2a31;
+  --s1: #ff6b7c; --s2: #ff5a69; --s3: #ff8a6e; --s4: #ff6f9c;
+  --ok: #74d197; --ok-bg: #13231a; --ok-line: #24472f; --warn: #f2b65c; --warn-bg: #2a2013; --warn-line: #4d3a1d;
+  --code: #ff9aa5; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--body); font-size: 16px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 48px 72px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+code { font-family: var(--mono); font-size: .86em; background: var(--sunk); padding: 1px 6px; border-radius: 4px; }
+a { color: var(--red); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+/* Hero */
+.hero { text-align: center; display: grid; justify-items: center; gap: 14px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: .04em;
+  padding: 5px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted);
+}
+.badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--red); }
+.hero h1 { font-size: clamp(30px, 6vw, 46px); line-height: 1.12; font-weight: 800; letter-spacing: -.02em; }
+.grad {
+  background: linear-gradient(90deg, var(--red-deep), var(--red) 50%, var(--red-hi));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero p { color: var(--muted); max-width: 60ch; margin: 0; font-size: 17px; }
+.vessel { font-size: 14px; color: var(--muted); }
+.vessel strong { color: var(--ink); }
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; margin-top: 18px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 10px; }
+.stat b { display: block; font-family: var(--display); font-size: 24px; color: var(--red); font-variant-numeric: tabular-nums; }
+.stat span { font-size: 13px; color: var(--muted); }
+
+.pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 26px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink);
+  font-size: 14px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface);
+  transition: border-color .15s, transform .15s;
+}
+.pill:hover { border-color: var(--tint-line); transform: translateY(-1px); }
+.pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+
+/* Phase */
+.phase { margin-top: 64px; --c: var(--s2); scroll-margin-top: 16px; }
+.phase-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: start; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+.icon {
+  width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center;
+  background: var(--tint); color: var(--c);
+}
+.icon svg { width: 22px; height: 22px; }
+.phase-head h2 { font-size: 22px; color: var(--c); font-weight: 700; }
+.phase-head p { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+.tag { font-family: var(--mono); font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; background: var(--surface); white-space: nowrap; }
+
+/* Steps */
+.steps { list-style: none; margin: 0; padding: 26px 0 0; display: grid; gap: 28px; position: relative; }
+.steps::before { content: ""; position: absolute; left: 15px; top: 34px; bottom: 8px; width: 2px; background: var(--line); }
+.step { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 14px; position: relative; }
+.num {
+  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  border: 2px solid var(--c); background: var(--bg); color: var(--c);
+  font-family: var(--display); font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums;
+}
+.step-body { min-width: 0; display: grid; gap: 10px; }
+.step h3 { font-size: 17px; font-weight: 700; padding-top: 4px; }
+.step p { margin: 0; color: var(--muted); }
+.step ul { margin: 0; padding-left: 20px; color: var(--muted); }
+.step li { margin: 2px 0; }
+
+.codebox { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 92px 14px 16px; overflow-x: auto; }
+.codebox pre { margin: 0; font-family: var(--mono); font-size: 13.5px; color: var(--code); white-space: pre; }
+.copy {
+  position: absolute; top: 10px; right: 10px; font: 500 12px var(--body);
+  padding: 4px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--sunk); color: var(--ink); cursor: pointer;
+}
+.copy:hover { border-color: var(--tint-line); }
+
+.note { border-radius: 10px; padding: 12px 16px; display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; font-size: 15px; }
+.note b { font-weight: 600; }
+.verify { background: var(--ok-bg); border: 1px solid var(--ok-line); }
+.verify::before { content: "✓"; color: var(--ok); font-weight: 700; }
+.warn { background: var(--warn-bg); border: 1px solid var(--warn-line); }
+.warn::before { content: "!"; color: var(--warn); font-weight: 800; text-align: center; }
+.info { background: var(--tint); border: 1px solid var(--tint-line); }
+.info::before { content: "i"; color: var(--red); font-weight: 800; font-family: var(--display); text-align: center; }
+
+/* Tables */
+.tablebox { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); margin-top: 22px; }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 560px; }
+th { text-align: left; font-family: var(--display); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: var(--sunk); padding: 10px 14px; border-bottom: 1px solid var(--line); }
+td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.qty { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 9px; border-radius: 999px; white-space: nowrap; }
+.chip.have { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok-line); }
+.chip.buy { background: var(--tint); color: var(--red); border: 1px solid var(--tint-line); }
+.chip.maybe { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-line); }
+.chip.no { background: var(--sunk); color: var(--muted); border: 1px solid var(--line); }
+
+/* Topology flow */
+.flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin-top: 22px; }
+.node { flex: 1 1 130px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.node b { display: block; font-family: var(--display); font-size: 14px; }
+.node span { font-size: 13px; color: var(--muted); }
+.node.hot { border-color: var(--red); background: var(--tint); }
+.arrow { align-self: center; color: var(--muted); font-size: 18px; }
+
+/* Deck map */
+.decks { display: grid; gap: 18px; margin-top: 22px; }
+.deck h4 { margin: 0 0 8px; font-family: var(--display); font-size: 14px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.deck h4 small { font-family: var(--body); font-weight: 500; color: var(--muted); font-size: 13px; }
+.hull { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; border: 1.5px solid var(--line); border-radius: 10px 40px 40px 10px; background: var(--surface); }
+.room { flex: var(--w, 1) 1 110px; min-width: 0; border: 1px dashed var(--line); border-radius: 6px; padding: 8px 10px; min-height: 72px; display: grid; align-content: space-between; gap: 6px; }
+.room b { font-size: 13.5px; font-weight: 600; }
+.room.eq { background: var(--tint); border: 1.5px solid var(--red); border-style: solid; }
+.room.mute b { color: var(--muted); font-weight: 500; }
+.dots { display: flex; gap: 5px; align-items: center; font-size: 12px; color: var(--muted); }
+.ap { width: 12px; height: 12px; border-radius: 50%; background: var(--red); }
+.ap.out { background: transparent; border: 2.5px solid var(--red); }
+.dish { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--red-deep); background: var(--tint); }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--muted); margin-top: 4px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Topology */
+.topo-box { overflow-x: auto; margin-top: 22px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 12px; }
+.topo { display: block; width: 100%; min-width: 720px; height: auto; font-family: var(--body); }
+.topo text { fill: var(--ink); font-size: 12px; }
+.topo .m { fill: var(--muted); }
+.topo .b { font-weight: 600; }
+.topo .s { font-size: 11.5px; }
+.topo .xs { font-size: 10.5px; }
+.topo .hull { fill: none; stroke: var(--muted); stroke-opacity: .45; stroke-width: 1.5; }
+.topo .room { fill: var(--bg); stroke: var(--line); stroke-dasharray: 4 3; }
+.topo .room.eq { fill: var(--tint); stroke: var(--red); stroke-dasharray: none; stroke-width: 1.5; }
+.topo .chip { fill: var(--surface); stroke: var(--red); stroke-width: 1; }
+.topo .ap { fill: var(--red); }
+.topo .ap.pend { fill: var(--surface); stroke: var(--red); stroke-width: 2.5; }
+.topo .dish { fill: var(--tint); stroke: var(--red-deep); stroke-width: 2; }
+.topo .cable { fill: none; stroke: var(--red); stroke-width: 1.5; }
+.topo .cable.d { stroke: var(--red-deep); stroke-dasharray: 5 4; }
+.topo .wire { fill: none; stroke: var(--muted); stroke-width: 1.2; }
+.topo .arrowhead { fill: var(--red); }
+.cab { width: 22px; height: 0; border-top: 2px solid var(--red); display: inline-block; }
+.cab.d { border-top: 2px dashed var(--red-deep); }
+
+/* Checklist */
+.checklist { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 6px; }
+.checklist label { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; padding: 10px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); cursor: pointer; }
+.checklist input { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--red); }
+.checklist input:checked + span { color: var(--muted); text-decoration: line-through; }
+.progress { display: flex; align-items: center; gap: 12px; margin-top: 18px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar { flex: 1; height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--red-deep), var(--red-hi)); transition: width .25s; }
+
+.open { margin-top: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+.open h4 { margin: 0 0 6px; font-family: var(--display); font-size: 15px; }
+.open ul { margin: 0; padding-left: 20px; color: var(--muted); }
+
+footer { margin-top: 72px; padding-top: 22px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); display: grid; gap: 8px; }
+footer ul { margin: 0; padding-left: 18px; }
+
+@media (max-width: 560px) {
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .phase-head { grid-template-columns: auto minmax(0, 1fr); }
+  .tag { grid-column: 2; justify-self: start; }
+  .arrow { display: none; }
+  .hull { border-radius: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } html { scroll-behavior: auto; } }
+html { scroll-behavior: smooth; }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <span class="badge">Installation Runbook</span>
+    <h1>Starlink + UniFi<br><span class="grad">Passenger Wi-Fi Setup</span></h1>
+    <p>Step-by-step: plan and materials → Starlink → UCG Ultra → switches and APs → voucher portal → commissioning. Follow each phase in order.</p>
+    <div class="vessel"><strong>M/V Virgen de Peñafrancia XII</strong> · Star Horse Shipping Lines · 82 m RoRo passenger ferry · Updated 5 Nov 2026</div>
+    <div class="stats">
+      <div class="stat"><b>6</b><span>Access points</span></div>
+      <div class="stat"><b>2</b><span>PoE switches</span></div>
+      <div class="stat"><b>2</b><span>Wi-Fi networks</span></div>
+      <div class="stat"><b>1</b><span>Starlink dish</span></div>
+    </div>
+    <nav class="pills" aria-label="Phases">
+      <a class="pill" href="#plan" style="--c:var(--s1)"><i></i>Plan</a>
+      <a class="pill" href="#materials" style="--c:var(--s2)"><i></i>Materials</a>
+      <a class="pill" href="#layout" style="--c:var(--s3)"><i></i>Vessel layout</a>
+      <a class="pill" href="#starlink" style="--c:var(--s4)"><i></i>Starlink</a>
+      <a class="pill" href="#gateway" style="--c:var(--s1)"><i></i>UCG Ultra</a>
+      <a class="pill" href="#aps" style="--c:var(--s2)"><i></i>Switches + APs</a>
+      <a class="pill" href="#vouchers" style="--c:var(--s3)"><i></i>Vouchers</a>
+      <a class="pill" href="#security" style="--c:var(--s4)"><i></i>Security</a>
+      <a class="pill" href="#commission" style="--c:var(--s1)"><i></i>Go live</a>
+    </nav>
+  </header>
+
+  <!-- PHASE 00 -->
+  <section class="phase" id="plan" style="--c:var(--s1)">
+    <div class="phase-head">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+      <div><h2>Plan before buying</h2><p>Settle the Starlink service plan, cable distances and power before any hardware is ordered.</p></div>
+      <span class="tag">Phase 00</span>
+    </div>
+    <ol class="steps">
+      <li class="step"><span class="num">1</span><div class="step-body">
+        <h3>Confirm the Starlink service plan</h3>
+        <p>The Standard kit is approved for vessels, but most plans are not. A daily ferry also passes Roam's limit of 5 consecutive days and 60 days per year in territorial waters.</p>
+        <div class="tablebox" style="margin-top:4px"><table>
+          <thead><tr><th>Plan</th><th>On this vessel</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Residential / Standard / Priority</td><td><span class="chip no">Not allowed</span></td><td>In-motion use is not permitted</td></tr>
+            <tr><td>Roam</td><td><span class="chip maybe">Short-term only</span></td><td>Coastal waters, with day limits. Not for a daily commercial route</td></tr>
+            <tr><td>Roam + Ocean Mode</td><td><span class="chip have">Works</span></td><td>Beyond 12 nautical miles and past the day limits. Billed per GB</td></tr>
+            <tr><td>Business Maritime / Mobile Priority</td><td><span class="chip have">Recommended</span></td><td>Commercial use, network priority</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note verify"><span><b>Verify:</b> Starlink or a local reseller confirms in writing that the plan covers commercial passenger Wi-Fi on your route.</span></div>
+      </div></li>
+      <li class="step"><span class="num">2</span><div class="step-body">
+        <h3>Measure every cable run on board</h3>
+        <ul>
+          <li>Dish position (compass deck) down to the wheelhouse. Compare with the supplied Starlink cable length.</li>
+          <li>Wheelhouse to the 2nd deck switch location (midships).</li>
+          <li>Each switch to each AP position, including vertical drops and tray detours.</li>
+        </ul>
+        <div class="note verify"><span><b>Verify:</b> every Cat6 run is under 90 m, leaving margin under the 100 m Ethernet limit.</span></div>
+      </div></li>
+      <li class="step"><span class="num">3</span><div class="step-body">
+        <h3>Check power at both equipment points</h3>
+        <p>The Starlink power supply runs on 100–240 V AC. Confirm 220 V AC outlets in the wheelhouse and at the 2nd deck switch location. Add an inverter only where AC is missing.</p>
+        <div class="note warn"><span>Clear every bulkhead and deck penetration with the shipping line's naval architect before drilling. Each pass needs an approved fire- and watertight transit.</span></div>
+      </div></li>
+    </ol>
+  </section>
+
+  <!-- PHASE 01 -->
+  <section class="phase" id="materials" style="--c:var(--s2)">
+    <div class="phase-head">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg></div>
+      <div><h2>Bill of materials</h2><p>Quantities for 6 APs, one per passenger area. Prices are PH store listings checked 5 Nov 2026; most are sold out or pre-order, so confirm stock first.</p></div>
+      <span class="tag">Phase 01</span>
+    </div>
+    <div class="tablebox"><table>
+      <thead><tr><th>Item</th><th>Status</th><th>Model / spec</th><th>Qty</th><th>Where / why</th><th>Est. price (PHP)</th></tr></thead>
+      <tbody>
+        <tr><td>Starlink Standard (V4) kit</td><td><span class="chip have">Have</span></td><td>Dish UTA-232, router UTR-251, PSU UTP-253L</td><td class="qty">1</td><td>Satellite link</td><td>—</td></tr>
+        <tr><td>Cloud Gateway Ultra</td><td><span class="chip have">Have</span></td><td>UCG-Ultra</td><td class="qty">1</td><td>Router, VLANs, Hotspot Manager, vouchers</td><td>—</td></tr>
+        <tr><td>Access point</td><td><span class="chip buy">Buy</span></td><td>U6+, Wi-Fi 6, ceiling, PoE (9 W max)</td><td class="qty">5</td><td>Canteen, reclining room, VIP hallway, 2 bunk rooms</td><td class="qty">6,590–8,800 each</td></tr>
+        <tr><td>Economy area AP</td><td><span class="chip maybe">Decide</span></td><td>U6+ if sheltered; U6 Mesh (IPX5) if exposed</td><td class="qty">1</td><td>Economy seating, 2nd deck aft</td><td class="qty">6,590–8,800 / 15,350</td></tr>
+        <tr><td>PoE switch, wheelhouse</td><td><span class="chip buy">Buy</span></td><td>USW Lite 8 PoE (52 W, 4 PoE+ ports)</td><td class="qty">1</td><td>3 APs (~27 W), uplink, crew PC via UCG</td><td class="qty">8,760–9,300</td></tr>
+        <tr><td>PoE switch, 2nd deck</td><td><span class="chip buy">Buy</span></td><td>USW Lite 8 PoE (52 W, 4 PoE+ ports)</td><td class="qty">1</td><td>3 APs (~30 W), 1 spare PoE port</td><td class="qty">8,760–9,300</td></tr>
+        <tr><td>Shielded Cat6</td><td><span class="chip buy">Buy</span></td><td>305 m boxes; UV-rated for exposed runs</td><td class="qty">~2</td><td>AP runs, uplink, spare runs</td><td class="m-tbd">Get quote</td></tr>
+        <tr><td>Cabling accessories</td><td><span class="chip buy">Buy</span></td><td>RJ45 / keystones, patch cords, ties, labels</td><td class="qty">1 lot</td><td>Terminate and label every run</td><td class="m-tbd">Get quote</td></tr>
+        <tr><td>Bulkhead / deck transits</td><td><span class="chip buy">Buy</span></td><td>Approved fire- and watertight</td><td class="qty">Per pass</td><td>Every cable penetration</td><td class="m-tbd">Get quote</td></tr>
+        <tr><td>Rigid dish mount</td><td><span class="chip buy">Buy</span></td><td>Marine pole or flat mount</td><td class="qty">1</td><td>Compass deck. No kickstand at sea</td><td class="m-tbd">Get quote</td></tr>
+        <tr><td>UPS, wheelhouse</td><td><span class="chip buy">Buy</span></td><td>Online UPS, ~1 kVA</td><td class="qty">1</td><td>UCG, switch, Starlink PSU</td><td class="m-tbd">Get quote</td></tr>
+        <tr><td>UPS, 2nd deck</td><td><span class="chip buy">Buy</span></td><td>Small UPS</td><td class="qty">1</td><td>Deck 2 switch</td><td class="m-tbd">Get quote</td></tr>
+        <tr><td>Network cabinet</td><td><span class="chip buy">Buy</span></td><td>Lockable, ventilated wall cabinet</td><td class="qty">2</td><td>Wheelhouse and 2nd deck</td><td class="m-tbd">Get quote</td></tr>
+        <tr><td>Surge-protected power strip</td><td><span class="chip buy">Buy</span></td><td>Marine or industrial grade</td><td class="qty">2</td><td>One per cabinet</td><td class="m-tbd">Get quote</td></tr>
+        <tr><td>Longer Starlink cable</td><td><span class="chip maybe">If needed</span></td><td>Official Starlink cable</td><td class="qty">0–1</td><td>Only if the dish run exceeds the supplied cable</td><td class="m-tbd">Get quote</td></tr>
+        <tr><td>Inverter</td><td><span class="chip maybe">If needed</span></td><td>Pure sine wave</td><td class="qty">0–2</td><td>Only where 220 V AC is missing</td><td class="m-tbd">Get quote</td></tr>
+        <tr><td>Voucher printer</td><td><span class="chip no">Optional</span></td><td>Receipt or A4 printer</td><td class="qty">1</td><td>Purser or cashier</td><td class="m-tbd">Get quote</td></tr>
+      </tbody>
+    </table></div>
+    <div class="note info" style="margin-top:14px"><span><b>APs + switches total:</b> about ₱57,000–71,000 if the economy area uses a U6+, or ₱66,000–78,000 with a U6 Mesh. The U6+ draws only 9 W, so the 52 W USW Lite 8 PoE carries three APs per deck with headroom.</span></div>
+  </section>
+
+  <!-- PHASE 02 -->
+  <section class="phase" id="layout" style="--c:var(--s3)">
+    <div class="phase-head">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M4 16l1-6h14l1 6"/><path d="M8 10V6h8v4"/><path d="M12 6V3"/></svg></div>
+      <div><h2>Vessel layout and topology</h2><p>Dish on the compass deck, equipment and crew PC in the wheelhouse, one AP per passenger area.</p></div>
+      <span class="tag">Phase 02</span>
+    </div>
+
+    <div class="topo-box">
+      <svg class="topo" viewBox="0 0 900 550" role="img" aria-label="Network topology across the compass deck, 3rd deck and 2nd deck">
+        <defs>
+          <marker id="tarr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrowhead"/></marker>
+        </defs>
+
+        <!-- deck labels -->
+        <text x="16" y="84" class="b">Compass deck</text>
+        <text x="16" y="224" class="b">3rd deck</text>
+        <text x="16" y="404" class="b">2nd deck</text>
+
+        <!-- compass deck -->
+        <rect x="120" y="50" width="760" height="60" rx="8" class="hull"/>
+        <rect x="150" y="56" width="20" height="12" class="wire"/>
+        <rect x="150" y="92" width="20" height="12" class="wire"/>
+        <text x="180" y="84" class="m s">Funnels (keep clear)</text>
+        <circle cx="640" cy="80" r="11" class="dish"/>
+        <text x="620" y="84" text-anchor="end" class="b">Starlink dish</text>
+        <path d="M820 68V94M806 68H834" class="wire"/>
+        <text x="800" y="84" text-anchor="end" class="m s">Radar</text>
+
+        <!-- 3rd deck -->
+        <rect x="120" y="140" width="760" height="160" rx="8" class="hull"/>
+        <rect x="128" y="148" width="100" height="144" rx="6" class="room"/>
+        <text x="178" y="168" text-anchor="middle" class="s">Aft open deck</text>
+        <text x="178" y="184" text-anchor="middle" class="m xs">No AP</text>
+        <rect x="234" y="148" width="140" height="144" rx="6" class="room"/>
+        <text x="304" y="168" text-anchor="middle" class="s">Canteen / galley</text>
+        <rect x="380" y="148" width="180" height="144" rx="6" class="room"/>
+        <text x="470" y="168" text-anchor="middle" class="s">Reclining room</text>
+        <rect x="566" y="148" width="124" height="144" rx="6" class="room"/>
+        <text x="628" y="168" text-anchor="middle" class="s">VIP suites (6)</text>
+        <text x="628" y="184" text-anchor="middle" class="m xs">AP in hallway</text>
+        <rect x="696" y="148" width="176" height="144" rx="6" class="room eq"/>
+        <text x="784" y="166" text-anchor="middle" class="b s">Wheelhouse</text>
+
+        <!-- wheelhouse equipment -->
+        <rect x="708" y="176" width="152" height="20" rx="4" class="chip"/>
+        <text x="784" y="190" text-anchor="middle" class="xs">Router UTR-251 · bypass</text>
+        <rect x="708" y="206" width="152" height="20" rx="4" class="chip"/>
+        <text x="784" y="220" text-anchor="middle" class="xs b">UCG Ultra</text>
+        <rect x="708" y="236" width="152" height="20" rx="4" class="chip"/>
+        <text x="784" y="250" text-anchor="middle" class="xs">Switch 1 · Lite 8 PoE</text>
+        <rect x="708" y="266" width="152" height="20" rx="4" class="chip"/>
+        <text x="784" y="280" text-anchor="middle" class="xs">PC · Crew VLAN 10</text>
+        <path d="M784 196V206M784 226V236" class="wire"/>
+        <path d="M860 216H867V276H860" class="wire"/>
+
+        <!-- dish cable -->
+        <path d="M640 91V122H740V176" class="cable d" marker-end="url(#tarr)"/>
+        <text x="690" y="117" text-anchor="middle" class="m xs">dish cable</text>
+
+        <!-- 3rd deck cable runs -->
+        <path d="M708 246H702V318H304" class="cable"/>
+        <path d="M304 318V232M470 318V232M628 318V232" class="cable" marker-end="url(#tarr)"/>
+        <circle cx="304" cy="224" r="7" class="ap"/><text x="316" y="228" class="s">U6+</text>
+        <circle cx="470" cy="224" r="7" class="ap"/><text x="482" y="228" class="s">U6+</text>
+        <circle cx="628" cy="224" r="7" class="ap"/><text x="640" y="228" class="s">U6+</text>
+        <text x="400" y="333" text-anchor="middle" class="m xs">Cat6 + PoE from Switch 1</text>
+
+        <!-- uplink -->
+        <path d="M560 318V384" class="cable" marker-end="url(#tarr)"/>
+        <text x="554" y="374" text-anchor="end" class="m xs">uplink</text>
+
+        <!-- 2nd deck -->
+        <path d="M120 340H800Q880 340 880 400Q880 460 800 460H120Z" class="hull"/>
+        <rect x="128" y="348" width="112" height="104" rx="6" class="room"/>
+        <text x="184" y="368" text-anchor="middle" class="s">Economy (open)</text>
+        <text x="184" y="384" text-anchor="middle" class="m xs">U6+ or U6 Mesh</text>
+        <rect x="246" y="348" width="44" height="104" rx="6" class="room"/>
+        <text x="268" y="368" text-anchor="middle" class="m s">WC</text>
+        <rect x="296" y="348" width="240" height="104" rx="6" class="room"/>
+        <text x="416" y="368" text-anchor="middle" class="s">Aft bunk room</text>
+        <rect x="542" y="384" width="36" height="32" rx="4" class="chip"/>
+        <text x="560" y="404" text-anchor="middle" class="xs b">SW 2</text>
+        <rect x="584" y="348" width="212" height="104" rx="6" class="room"/>
+        <text x="690" y="368" text-anchor="middle" class="s">Forward bunk room</text>
+        <text x="836" y="404" text-anchor="middle" class="m s">Bow</text>
+
+        <!-- 2nd deck cable runs -->
+        <path d="M560 416V486H184M560 486H690" class="cable"/>
+        <path d="M184 486V418M416 486V418M690 486V418" class="cable" marker-end="url(#tarr)"/>
+        <circle cx="184" cy="410" r="7" class="ap pend"/><text x="196" y="414" class="s">AP</text>
+        <circle cx="416" cy="410" r="7" class="ap"/><text x="428" y="414" class="s">U6+</text>
+        <circle cx="690" cy="410" r="7" class="ap"/><text x="702" y="414" class="s">U6+</text>
+        <text x="300" y="503" text-anchor="middle" class="m xs">Cat6 + PoE from Switch 2</text>
+
+        <text x="880" y="538" text-anchor="end" class="m xs">Bow to the right · not to scale · vehicle deck not covered</text>
+      </svg>
+    </div>
+    <div class="legend" style="margin-top:10px">
+      <span><span class="ap"></span> U6+ access point</span>
+      <span><span class="ap out"></span> Economy AP (U6+ if sheltered, U6 Mesh if exposed)</span>
+      <span><span class="dish"></span> Starlink dish</span>
+      <span><span class="cab"></span> Cat6 run</span>
+      <span><span class="cab d"></span> Dish cable</span>
+    </div>
+    <p style="color:var(--muted);margin:12px 0 0;font-size:15px">The dish cable runs down to the router in the wheelhouse. The UCG Ultra feeds Switch 1 for the three 3rd deck APs and the crew PC, and one uplink cable drops to Switch 2 midships on the 2nd deck for the remaining three APs.</p>
+
+    <ol class="steps">
+      <li class="step"><span class="num">1</span><div class="step-body">
+        <h3>Install the wheelhouse cabinet safely</h3>
+        <ul>
+          <li>Keep the UPS and network gear at least 1–2 m from the magnetic compass.</li>
+          <li>Use a closed, ventilated cabinet out of direct sun.</li>
+          <li>Route network cables away from radar, GPS and VHF/GMDSS wiring. Don't share their power circuit.</li>
+        </ul>
+        <div class="note verify"><span><b>Verify:</b> compass deviation is checked after installation.</span></div>
+      </div></li>
+      <li class="step"><span class="num">2</span><div class="step-body">
+        <h3>Pull spare Cat6 while cabling</h3>
+        <p>Run one extra cable to a second ceiling position at each end of both bunk rooms and the reclining room. Bulkhead transits are the expensive part, so adding an AP later becomes a simple mount.</p>
+      </div></li>
+    </ol>
+  </section>
+
+  <!-- PHASE 03 -->
+  <section class="phase" id="starlink" style="--c:var(--s4)">
+    <div class="phase-head">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a8 8 0 0 1 16 0"/><path d="M12 14v7"/><path d="M8 21h8"/><path d="M12 3v3"/></svg></div>
+      <div><h2>Starlink</h2><p>Mount the dish, power the UTR-251 router, then hand routing to the UCG Ultra with bypass mode.</p></div>
+      <span class="tag">Phase 03</span>
+    </div>
+    <ol class="steps">
+      <li class="step"><span class="num">1</span><div class="step-body">
+        <h3>Mount the dish and power up</h3>
+        <p>Bolt the rigid mount to structure on the compass deck centerline. Connect the dish cable to the router and power the router through the supplied UTP-253L power supply on the UPS.</p>
+        <div class="note verify"><span><b>Verify:</b> the Starlink app shows online, and the obstruction map is clear in all directions.</span></div>
+      </div></li>
+      <li class="step"><span class="num">2</span><div class="step-body">
+        <h3>Connect the router to the UCG Ultra</h3>
+        <p>The UTR-251 has two Ethernet ports. One carries the dish. Run Cat6 from the free port to the UCG Ultra <b>WAN (2.5G)</b> port.</p>
+      </div></li>
+      <li class="step"><span class="num">3</span><div class="step-body">
+        <h3>Enable bypass mode</h3>
+        <p>In the Starlink app, open Settings and turn on Bypass Mode. The router's Wi-Fi switches off. To undo it later you must factory reset the router.</p>
+        <div class="note verify"><span><b>Verify:</b> the UCG WAN shows a Starlink address, not <code>192.168.1.x</code>. A <code>192.168.1.x</code> address means bypass is not active (it still works, with double NAT).</span></div>
+      </div></li>
+    </ol>
+  </section>
+
+  <!-- PHASE 04 -->
+  <section class="phase" id="gateway" style="--c:var(--s1)">
+    <div class="phase-head">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="2"/><path d="M7 12h.01M11 12h.01"/><path d="M15 12h3"/></svg></div>
+      <div><h2>UCG Ultra and networks</h2><p>Adopt the gateway, update firmware, and split crew and passengers into separate VLANs.</p></div>
+      <span class="tag">Phase 04</span>
+    </div>
+    <ol class="steps">
+      <li class="step"><span class="num">1</span><div class="step-body">
+        <h3>Adopt and update</h3>
+        <p>Adopt the UCG in the UniFi app or at unifi.ui.com. Set WAN to DHCP. Update UniFi OS and the Network application before configuring anything else.</p>
+      </div></li>
+      <li class="step"><span class="num">2</span><div class="step-body">
+        <h3>Create the networks</h3>
+        <div class="tablebox" style="margin-top:4px"><table>
+          <thead><tr><th>Network</th><th>VLAN</th><th>Security</th><th>Portal</th><th>Users</th></tr></thead>
+          <tbody>
+            <tr><td>Management</td><td class="qty">1</td><td>—</td><td>No</td><td>UniFi devices only</td></tr>
+            <tr><td>Crew</td><td class="qty">10</td><td>WPA2/WPA3 password</td><td>No</td><td>Crew phones, laptops, POS</td></tr>
+            <tr><td>Guests</td><td class="qty">20</td><td>Open, type <i>Guest / Hotspot</i></td><td>Voucher</td><td>Passengers</td></tr>
+          </tbody>
+        </table></div>
+      </div></li>
+      <li class="step"><span class="num">3</span><div class="step-body">
+        <h3>Wire the wheelhouse PC</h3>
+        <p>The wheelhouse has no AP. Plug the PC into a free UCG Ultra LAN port with a normal Cat6 cable, then set that port's network to <b>Crew (VLAN 10)</b> in UniFi so it skips the voucher portal.</p>
+        <div class="note verify"><span><b>Verify:</b> the PC gets a Crew VLAN address and browses without a login page.</span></div>
+      </div></li>
+      <li class="step"><span class="num">4</span><div class="step-body">
+        <h3>Secure remote access</h3>
+        <p>Enable remote access so the network can be managed from shore. Protect the UI account with a strong password and two-factor authentication.</p>
+        <div class="note verify"><span><b>Verify:</b> you can open the vessel's site from unifi.ui.com on a phone off the ship's network.</span></div>
+      </div></li>
+    </ol>
+  </section>
+
+  <!-- PHASE 05 -->
+  <section class="phase" id="aps" style="--c:var(--s2)">
+    <div class="phase-head">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5 5 0 0 1 7 0"/><path d="M12 19.5h.01"/><path d="M2 9a15 15 0 0 1 20 0"/></svg></div>
+      <div><h2>Switches and access points</h2><p>Two PoE switches, six APs, two SSIDs on every AP.</p></div>
+      <span class="tag">Phase 05</span>
+    </div>
+    <ol class="steps">
+      <li class="step"><span class="num">1</span><div class="step-body">
+        <h3>Connect and adopt both switches</h3>
+        <p>Connect Switch 1 (wheelhouse) to UCG LAN port 1. Connect Switch 2 (2nd deck, midships) to Switch 1 through the uplink cable, using a non-PoE port on Switch 1 so its four PoE ports stay free for APs. Adopt both.</p>
+      </div></li>
+      <li class="step"><span class="num">2</span><div class="step-body">
+        <h3>Mount and adopt the APs</h3>
+        <p>Plug each AP into its switch and adopt them one at a time. Name each by location so the crew can find it.</p>
+        <div class="codebox"><pre>AP-D3-Canteen
+AP-D3-Reclining
+AP-D3-VIP-Hall
+AP-D2-Bunk-Aft
+AP-D2-Bunk-Fwd
+AP-D2-Economy</pre><button class="copy" type="button">Copy</button></div>
+      </div></li>
+      <li class="step"><span class="num">3</span><div class="step-body">
+        <h3>Create the SSIDs and tune radios</h3>
+        <ul>
+          <li>Crew SSID on VLAN 10, WPA2/WPA3.</li>
+          <li>Passenger SSID on VLAN 20, open, Hotspot portal enabled, client isolation on.</li>
+          <li>Channel width 20 MHz on 2.4 GHz and 40 MHz on 5 GHz. Lower transmit power on neighboring APs.</li>
+        </ul>
+        <div class="note verify"><span><b>Verify:</b> all 6 APs show online. Each VIP suite gets usable signal with its door closed; add an in-wall AP to any suite that doesn't.</span></div>
+      </div></li>
+    </ol>
+  </section>
+
+  <!-- PHASE 06 -->
+  <section class="phase" id="vouchers" style="--c:var(--s3)">
+    <div class="phase-head">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z"/><path d="M14 5v14" stroke-dasharray="2 2"/></svg></div>
+      <div><h2>Voucher portal</h2><p>Branded login page, voucher packages, and the crew's selling procedure.</p></div>
+      <span class="tag">Phase 06</span>
+    </div>
+    <ol class="steps">
+      <li class="step"><span class="num">1</span><div class="step-body">
+        <h3>Enable the portal</h3>
+        <p>Open Hotspot Manager, then Portal. Enable it on the Guests network and set authentication to <b>Voucher</b>.</p>
+      </div></li>
+      <li class="step"><span class="num">2</span><div class="step-body">
+        <h3>Brand the landing page</h3>
+        <p>In the Landing Page editor add the logo, a vessel photo as background, terms of use, English and Filipino text, and a help note such as "Ask the purser for help." For full design control later, an on-board external portal server is an option.</p>
+      </div></li>
+      <li class="step"><span class="num">3</span><div class="step-body">
+        <h3>Create the voucher packages</h3>
+        <p>Start with three and adjust after the first trips. Set prices against your Starlink data cost.</p>
+        <div class="tablebox" style="margin-top:4px"><table>
+          <thead><tr><th>Package</th><th>Duration</th><th>Devices</th><th>Down / up</th><th>Data cap</th><th>Price (PHP)</th></tr></thead>
+          <tbody>
+            <tr><td>Quick</td><td>1 hour</td><td class="qty">1</td><td>2 / 1 Mbps</td><td>None</td><td>—</td></tr>
+            <tr><td>Day pass</td><td>24 hours</td><td class="qty">1</td><td>3 / 1 Mbps</td><td>500 MB</td><td>—</td></tr>
+            <tr><td>Trip pass</td><td>Full voyage</td><td class="qty">2</td><td>3 / 1 Mbps</td><td>2 GB</td><td>—</td></tr>
+          </tbody>
+        </table></div>
+      </div></li>
+      <li class="step"><span class="num">4</span><div class="step-body">
+        <h3>Print and sell</h3>
+        <ul>
+          <li>Print voucher batches before departure. Lock unsold slips with the cash box.</li>
+          <li>Log every sale: code, package, time.</li>
+          <li>Tell passengers: join the passenger Wi-Fi, wait for the login page, enter the code.</li>
+          <li>No login page? Open any <code>http://</code> site, or turn Wi-Fi off and on.</li>
+          <li>Everyone connected but nothing loads? Check the Starlink app before blaming vouchers.</li>
+        </ul>
+        <div class="note verify"><span><b>Verify:</b> one test voucher works on a phone in every room.</span></div>
+      </div></li>
+    </ol>
+  </section>
+
+  <!-- PHASE 07 -->
+  <section class="phase" id="security" style="--c:var(--s4)">
+    <div class="phase-head">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
+      <div><h2>Security and bandwidth</h2><p>Keep passengers away from crew and equipment, and give each voucher a fair share of the link.</p></div>
+      <span class="tag">Phase 07</span>
+    </div>
+    <ol class="steps">
+      <li class="step"><span class="num">1</span><div class="step-body">
+        <h3>Block the Starlink dish from passengers</h3>
+        <p>Add a firewall rule in the Policy Engine so the guest VLAN can't open the dish interface.</p>
+        <div class="codebox"><pre>Action: Block
+Source: Guests (VLAN 20)
+Destination: 192.168.100.1/32</pre><button class="copy" type="button">Copy</button></div>
+        <div class="note verify"><span><b>Verify:</b> from a passenger phone, <code>http://192.168.100.1</code> and crew devices do not load.</span></div>
+      </div></li>
+      <li class="step"><span class="num">2</span><div class="step-body">
+        <h3>Apply caps and traffic rules</h3>
+        <ul>
+          <li>Per-voucher speed cap of about 2–3 Mbps. At 100–200 Mbps of Starlink, that serves roughly 30–60 streaming users at once.</li>
+          <li>Per-voucher data cap to protect per-GB ocean data.</li>
+          <li>Traffic rules on Guests to limit video streaming, OS updates and P2P.</li>
+        </ul>
+      </div></li>
+      <li class="step"><span class="num">3</span><div class="step-body">
+        <h3>Handle hotspot sharing</h3>
+        <p>Some Android phones can share the ship's Wi-Fi through their own hotspot. UniFi sees the whole group as one device, so the voucher's speed and data cap covers everyone behind it. Hard blocking needs TTL filtering, which UniFi doesn't offer.</p>
+        <div class="note verify"><span><b>Verify:</b> share a 2 Mbps test voucher from an Android phone to a second device. Both speed tests together stay under 2 Mbps and count against one voucher.</span></div>
+      </div></li>
+    </ol>
+  </section>
+
+  <!-- PHASE 08 -->
+  <section class="phase" id="commission" style="--c:var(--s1)">
+    <div class="phase-head">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg></div>
+      <div><h2>Commissioning</h2><p>Tick every item before the first passenger voyage. Progress is saved in this browser only.</p></div>
+      <span class="tag">Phase 08</span>
+    </div>
+    <div class="progress"><span id="count">0 of 14 done</span><div class="bar"><i id="bar"></i></div></div>
+    <ul class="checklist" id="checklist">
+      <li><label><input type="checkbox" id="c1"><span>Starlink plan confirmed for commercial use (Ocean Mode or Business Maritime)</span></label></li>
+      <li><label><input type="checkbox" id="c2"><span>Dish on rigid mount with a clear obstruction map</span></label></li>
+      <li><label><input type="checkbox" id="c3"><span>Power through UPS survives a generator switchover</span></label></li>
+      <li><label><input type="checkbox" id="c4"><span>Bypass mode on, UCG WAN online</span></label></li>
+      <li><label><input type="checkbox" id="c5"><span>Firmware updated on UCG, both switches and all APs</span></label></li>
+      <li><label><input type="checkbox" id="c6"><span>2nd deck switch adopted and uplink online</span></label></li>
+      <li><label><input type="checkbox" id="c7"><span>Crew and Guests VLANs created</span></label></li>
+      <li><label><input type="checkbox" id="c14"><span>Wheelhouse PC on Crew VLAN, no login page</span></label></li>
+      <li><label><input type="checkbox" id="c8"><span>Passengers cannot reach 192.168.100.1 or crew devices</span></label></li>
+      <li><label><input type="checkbox" id="c9"><span>Voucher tested in every room, each VIP suite with door closed</span></label></li>
+      <li><label><input type="checkbox" id="c10"><span>Speed and data caps confirmed on each package</span></label></li>
+      <li><label><input type="checkbox" id="c11"><span>Magnetic compass deviation checked after wheelhouse install</span></label></li>
+      <li><label><input type="checkbox" id="c12"><span>Remote access working from shore</span></label></li>
+      <li><label><input type="checkbox" id="c13"><span>Crew briefed on selling and troubleshooting</span></label></li>
+    </ul>
+
+    <div class="tablebox"><table>
+      <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td>UCG WAN shows 192.168.1.x</td><td>Bypass mode not active</td><td>Enable bypass in the Starlink app</td></tr>
+        <tr><td>UCG WAN down</td><td>Cable or router port</td><td>Reseat Cat6; dish cable must be in the dish port</td></tr>
+        <tr><td>Login page never appears</td><td>Private DNS or cached HTTPS</td><td>Open an <code>http://</code> site or disable private DNS</td></tr>
+        <tr><td>Voucher works but slow</td><td>Cap reached or link congested</td><td>Check usage, adjust caps and traffic rules</td></tr>
+        <tr><td>Drops in heavy weather</td><td>Rain fade or obstruction</td><td>Check the Starlink obstruction map</td></tr>
+        <tr><td>Weak signal in a room</td><td>Steel walls or bunk frames</td><td>Mount an AP on the spare Cat6 run</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="open">
+      <h4>Still to confirm</h4>
+      <ul>
+        <li>Whether the economy area is roofed and sheltered (U6+) or exposed to rain and spray (U6 Mesh)</li>
+        <li>Licensed passenger capacity, to tune voucher speed caps</li>
+        <li>Whether passengers use the 3rd deck aft open deck (adds 1 outdoor AP)</li>
+        <li>Exact route and typical crossing time</li>
+        <li>Cable distance from the wheelhouse to the dish position</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <span>Sources</span>
+    <ul>
+      <li><a href="https://starlink.com/support/article/50e933eb-54f5-1a77-cc85-c6c8325564cf" target="_blank" rel="noopener">Starlink – Using Starlink in motion</a></li>
+      <li><a href="https://starlink.com/bb/support/article/a0fe8d51-32f7-d2b9-d74a-801e31ad9f6a" target="_blank" rel="noopener">Starlink – Bypass mode</a></li>
+      <li><a href="https://techspecs.ui.com/unifi/cloud-gateways/ucg-ultra" target="_blank" rel="noopener">Ubiquiti – UCG Ultra tech specs</a></li>
+      <li><a href="https://help.ui.com/hc/articles/115000166827" target="_blank" rel="noopener">Ubiquiti – Hotspot portal</a></li>
+    </ul>
+    <span>Prepared for Star Horse Shipping Lines · M/V Virgen de Peñafrancia XII</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var pre = btn.parentElement.querySelector('pre');
+      var text = pre.textContent;
+      var done = function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); };
+      var fallback = function () {
+        var r = document.createRange(); r.selectNodeContents(pre);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        btn.textContent = 'Selected';
+        setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+      };
+      try {
+        navigator.clipboard.writeText(text).then(done, fallback);
+      } catch (e) { fallback(); }
+    });
+  });
+
+  var KEY = 'pfxii-checklist';
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('#checklist input'));
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
+  function update() {
+    var n = boxes.filter(function (b) { return b.checked; }).length;
+    document.getElementById('count').textContent = n + ' of ' + boxes.length + ' done';
+    document.getElementById('bar').style.width = (n / boxes.length * 100) + '%';
+  }
+  boxes.forEach(function (b) {
+    if (saved[b.id]) b.checked = true;
+    b.addEventListener('change', function () {
+      saved[b.id] = b.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+      update();
+    });
+  });
+  update();
+})();
+</script>
+
+</body></html>
